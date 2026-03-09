@@ -20,7 +20,7 @@ Keep your responses concise, warm, and grounded in everyday reality, just as Tuk
 Use simple language. You may occasionally quote a relevant line from an Abhanga (in Marathi with English translation) if it perfectly fits the situation.
 Focus on themes of devotion (Bhakti), equality, finding joy in simplicity, detachment from materialism, and inner peace.
 Do not be overly preachy; be a comforting friend and guide.
-IMPORTANT: Keep your responses relatively short (under 100 words) so they fit well on an Instagram post.
+IMPORTANT: Keep your responses VERY short (maximum 2-3 sentences, strictly under 50 words) so they fit perfectly on an Instagram post.
 CRITICAL: You MUST respond entirely in the ${language} language.`;
 
 const WELCOME_MESSAGES: Record<string, string> = {
@@ -289,46 +289,32 @@ export default function App() {
             <div className="absolute inset-8 border-[1px] border-[var(--color-olive)]/20 rounded-3xl pointer-events-none" />
             
             {/* Content Container */}
-            <div className="flex-1 flex flex-col justify-center px-24 py-24 relative z-10">
+            <div className="flex-1 flex flex-col px-24 pt-28 pb-12 relative z-10">
               
               {/* Question Section */}
-              <div className="mb-16">
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-8 h-[1px] bg-[var(--color-olive)]/40" />
-                  <p className="text-xl text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium">The Seeker</p>
-                </div>
-                <p className="text-5xl font-sans text-[var(--color-ink)]/90 leading-tight font-light pl-12">
+              <div className="mb-12">
+                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium mb-5">The Seeker</p>
+                <p className="text-4xl font-sans text-[var(--color-ink)]/80 leading-snug font-light">
                   "{exportData.question}"
                 </p>
               </div>
               
               {/* Divider */}
-              <div className="w-full flex justify-center my-12">
-                <div className="w-12 h-12 rounded-full border border-[var(--color-olive)]/20 flex items-center justify-center">
-                  <Leaf size={20} className="text-[var(--color-olive)]/40" />
-                </div>
-              </div>
+              <div className="w-16 h-[1px] bg-[var(--color-olive)]/30 my-8" />
               
               {/* Answer Section */}
-              <div>
-                <div className="flex items-center gap-4 mb-8">
-                  <div className="w-8 h-[1px] bg-[var(--color-olive)]/40" />
-                  <p className="text-xl text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium">The Wisdom</p>
-                </div>
-                <div className="text-[3.25rem] font-serif text-[var(--color-ink)] leading-[1.4] markdown-export pl-12">
+              <div className="flex-1 flex flex-col justify-center">
+                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium mb-6">The Wisdom</p>
+                <div className="text-[2.75rem] font-serif text-[var(--color-ink)] leading-tight markdown-export">
                   <ReactMarkdown>{exportData.answer}</ReactMarkdown>
                 </div>
               </div>
             </div>
             
             {/* Footer */}
-            <div className="absolute bottom-16 left-0 w-full flex flex-col items-center justify-center gap-3">
-              <p className="font-serif text-3xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</p>
-              <div className="flex items-center gap-3">
-                <div className="w-8 h-[1px] bg-[var(--color-olive)]/30" />
-                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.3em] font-medium">Find Joy in Simplicity</p>
-                <div className="w-8 h-[1px] bg-[var(--color-olive)]/30" />
-              </div>
+            <div className="h-32 flex flex-col items-center justify-center gap-2 relative z-10 border-t border-[var(--color-olive)]/10 mx-16 mb-8">
+              <p className="font-serif text-2xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</p>
+              <p className="text-sm text-[var(--color-olive)]/60 uppercase tracking-[0.3em] font-medium">Find Joy in Simplicity</p>
             </div>
           </div>
         </div>

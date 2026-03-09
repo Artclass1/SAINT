@@ -52,16 +52,20 @@ body {
 }
 
 .markdown-export p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
+}
+
+.markdown-export p:last-child {
+  margin-bottom: 0;
 }
 
 .markdown-export blockquote {
   font-family: var(--font-serif);
-  font-size: 3rem;
+  font-size: 2.25rem;
   font-style: italic;
   border-left: 4px solid var(--color-olive);
-  padding-left: 2rem;
-  margin: 2rem 0;
+  padding-left: 1.5rem;
+  margin: 1.5rem 0;
   color: var(--color-olive);
   opacity: 0.9;
 }
