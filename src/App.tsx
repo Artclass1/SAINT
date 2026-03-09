@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { GoogleGenAI } from '@google/genai';
-import { Send, Leaf } from 'lucide-react';
+import { Send, Leaf, Download, Loader2, Globe } from 'lucide-react';
 import ReactMarkdown from 'react-markdown';
 import { clsx, type ClassValue } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { toPng } from 'html-to-image';
 
 // Utility for tailwind classes
 function cn(...inputs: ClassValue[]) {
@@ -13,12 +14,22 @@ function cn(...inputs: ClassValue[]) {
 // Initialize Gemini API
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
-const SYSTEM_INSTRUCTION = `You are a wise, compassionate, and minimal philosophical guide embodying the spirit and teachings of Sant Tukaram Maharaj. 
+const getSystemInstruction = (language: string) => `You are a wise, compassionate, and minimal philosophical guide embodying the spirit and teachings of Sant Tukaram Maharaj. 
 Your purpose is to help users find joy, peace, and practical solutions to their life problems based on Tukaram's Abhangas (devotional poetry) and philosophy.
 Keep your responses concise, warm, and grounded in everyday reality, just as Tukaram did.
 Use simple language. You may occasionally quote a relevant line from an Abhanga (in Marathi with English translation) if it perfectly fits the situation.
 Focus on themes of devotion (Bhakti), equality, finding joy in simplicity, detachment from materialism, and inner peace.
-Do not be overly preachy; be a comforting friend and guide.`;
+Do not be overly preachy; be a comforting friend and guide.
+IMPORTANT: Keep your responses relatively short (under 100 words) so they fit well on an Instagram post.
+CRITICAL: You MUST respond entirely in the ${language} language.`;
+
+const WELCOME_MESSAGES: Record<string, string> = {
+  English: "Welcome. I am here to share the wisdom of Sant Tukaram. How can I help you find joy and peace today?",
+  Marathi: "नमस्कार. मी संत तुकारामांचे विचार आणि शहाणपण सामायिक करण्यासाठी येथे आहे. आज तुम्हाला आनंद आणि शांती मिळवण्यासाठी मी कशी मदत करू शकेन?",
+  Hindi: "नमस्ते। मैं यहाँ संत तुकाराम के ज्ञान को साझा करने के लिए हूँ। आज खुशी और शांति पाने में मैं आपकी कैसे मदद कर सकता हूँ?",
+  Gujarati: "નમસ્તે. હું અહીં સંત તુકારામનું જ્ઞાન વહેંચવા માટે છું. આજે તમને આનંદ અને શાંતિ શોધવામાં હું કેવી રીતે મદદ કરી શકું?",
+  Spanish: "Bienvenido. Estoy aquí para compartir la sabiduría de Sant Tukaram. ¿Cómo puedo ayudarte a encontrar alegría y paz hoy?",
+};
 
 type Message = {
   id: string;
@@ -27,21 +38,38 @@ type Message = {
 };
 
 export default function App() {
+  const [language, setLanguage] = useState('English');
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'welcome',
       role: 'model',
-      text: "Welcome. I am here to share the wisdom of Sant Tukaram. How can I help you find joy and peace today?",
+      text: WELCOME_MESSAGES['English'],
     }
   ]);
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportData, setExportData] = useState<{question: string, answer: string} | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Scroll to bottom when messages change
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Update welcome message if language changes and no other messages exist
+  useEffect(() => {
+    setMessages(prev => {
+      if (prev.length === 1 && prev[0].id === 'welcome') {
+        return [{
+          id: 'welcome',
+          role: 'model',
+          text: WELCOME_MESSAGES[language] || WELCOME_MESSAGES['English']
+        }];
+      }
+      return prev;
+    });
+  }, [language]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -61,7 +89,7 @@ export default function App() {
         model: 'gemini-3-flash-preview',
         contents: [
           { role: 'user', parts: [{ text: "Hello" }] },
-          { role: 'model', parts: [{ text: "Welcome. I am here to share the wisdom of Sant Tukaram. How can I help you find joy and peace today?" }] },
+          { role: 'model', parts: [{ text: WELCOME_MESSAGES[language] || WELCOME_MESSAGES['English'] }] },
           ...messages.filter(m => m.id !== 'welcome').map(m => ({
             role: m.role,
             parts: [{ text: m.text }]
@@ -69,7 +97,7 @@ export default function App() {
           { role: 'user', parts: [{ text: userMessage.text }] }
         ],
         config: {
-          systemInstruction: SYSTEM_INSTRUCTION,
+          systemInstruction: getSystemInstruction(language),
           temperature: 0.7,
         }
       });
@@ -94,25 +122,69 @@ export default function App() {
     }
   };
 
+  const handleDownload = async (question: string, answer: string) => {
+    setIsExporting(true);
+    setExportData({ question, answer });
+    
+    // Wait for React to render the export card
+    setTimeout(async () => {
+      const node = document.getElementById('instagram-export-card');
+      if (node) {
+        try {
+          const dataUrl = await toPng(node, { 
+            quality: 1.0, 
+            pixelRatio: 2,
+            // Ensure fonts are loaded before capturing
+            style: { transform: 'scale(1)', transformOrigin: 'top left' }
+          });
+          const link = document.createElement('a');
+          link.download = 'tukaram-wisdom.png';
+          link.href = dataUrl;
+          link.click();
+        } catch (err) {
+          console.error('Failed to export image', err);
+          alert('Failed to generate image. Please try again.');
+        } finally {
+          setIsExporting(false);
+          setExportData(null);
+        }
+      }
+    }, 500); // Give it a bit more time to ensure fonts and layout are ready
+  };
+
   return (
     <div className="flex flex-col h-screen bg-[var(--color-warm-bg)] font-sans">
       {/* Header */}
-      <header className="flex items-center justify-center p-6 border-b border-[var(--color-olive)]/20 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
+      <header className="flex items-center justify-between p-4 sm:p-6 border-b border-[var(--color-olive)]/20 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-[var(--color-olive)] flex items-center justify-center text-white shadow-sm">
             <Leaf size={20} className="opacity-90" />
           </div>
           <div>
-            <h1 className="font-serif text-2xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</h1>
-            <p className="text-xs text-[var(--color-olive)]/70 uppercase tracking-widest font-medium">Find Joy in Simplicity</p>
+            <h1 className="font-serif text-xl sm:text-2xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</h1>
+            <p className="text-[10px] sm:text-xs text-[var(--color-olive)]/70 uppercase tracking-widest font-medium">Find Joy in Simplicity</p>
           </div>
+        </div>
+        
+        {/* Language Selector */}
+        <div className="flex items-center gap-2 bg-white/80 border border-[var(--color-olive)]/20 rounded-full px-3 py-1.5 shadow-sm">
+          <Globe size={14} className="text-[var(--color-olive)]/70" />
+          <select 
+            value={language}
+            onChange={(e) => setLanguage(e.target.value)}
+            className="bg-transparent text-xs sm:text-sm font-medium text-[var(--color-ink)]/80 focus:outline-none cursor-pointer appearance-none pr-2"
+          >
+            {Object.keys(WELCOME_MESSAGES).map(lang => (
+              <option key={lang} value={lang}>{lang}</option>
+            ))}
+          </select>
         </div>
       </header>
 
       {/* Chat Area */}
       <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
         <div className="max-w-3xl mx-auto space-y-8 pb-4">
-          {messages.map((message) => (
+          {messages.map((message, index) => (
             <div
               key={message.id}
               className={cn(
@@ -120,20 +192,43 @@ export default function App() {
                 message.role === 'user' ? "justify-end" : "justify-start"
               )}
             >
-              <div
-                className={cn(
-                  "max-w-[85%] sm:max-w-[75%] rounded-3xl px-6 py-5 shadow-sm",
-                  message.role === 'user'
-                    ? "bg-[var(--color-olive)] text-white rounded-br-sm"
-                    : "bg-white text-[var(--color-ink)] rounded-bl-sm border border-[var(--color-olive)]/10"
-                )}
-              >
-                {message.role === 'model' ? (
-                  <div className="markdown-body text-[15px] sm:text-base">
-                    <ReactMarkdown>{message.text}</ReactMarkdown>
-                  </div>
-                ) : (
-                  <p className="text-[15px] sm:text-base leading-relaxed">{message.text}</p>
+              <div className="flex flex-col items-start max-w-[85%] sm:max-w-[75%]">
+                <div
+                  className={cn(
+                    "rounded-3xl px-6 py-5 shadow-sm w-full",
+                    message.role === 'user'
+                      ? "bg-[var(--color-olive)] text-white rounded-br-sm"
+                      : "bg-white text-[var(--color-ink)] rounded-bl-sm border border-[var(--color-olive)]/10"
+                  )}
+                >
+                  {message.role === 'model' ? (
+                    <div className="markdown-body text-[15px] sm:text-base">
+                      <ReactMarkdown>{message.text}</ReactMarkdown>
+                    </div>
+                  ) : (
+                    <p className="text-[15px] sm:text-base leading-relaxed">{message.text}</p>
+                  )}
+                </div>
+                
+                {/* Download Button for AI Messages */}
+                {message.role === 'model' && message.id !== 'welcome' && (
+                  <button
+                    onClick={() => {
+                      const prevMessage = messages[index - 1];
+                      const question = prevMessage?.role === 'user' ? prevMessage.text : "How can I find joy?";
+                      handleDownload(question, message.text);
+                    }}
+                    disabled={isExporting}
+                    className="mt-2 ml-2 flex items-center gap-1.5 text-xs text-[var(--color-olive)]/60 hover:text-[var(--color-olive)] transition-colors disabled:opacity-50"
+                    title="Download as Instagram Post"
+                  >
+                    {isExporting && exportData?.answer === message.text ? (
+                      <Loader2 size={14} className="animate-spin" />
+                    ) : (
+                      <Download size={14} />
+                    )}
+                    <span className="uppercase tracking-wider font-medium">Save as Image</span>
+                  </button>
                 )}
               </div>
             </div>
@@ -163,7 +258,7 @@ export default function App() {
                 handleSend();
               }
             }}
-            placeholder="Share your thoughts or ask for guidance..."
+            placeholder={language === 'Marathi' ? "तुमचे विचार सामायिक करा..." : language === 'Hindi' ? "अपने विचार साझा करें..." : "Share your thoughts or ask for guidance..."}
             className="w-full bg-white border border-[var(--color-olive)]/20 rounded-3xl pl-6 pr-16 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-olive)]/30 focus:border-[var(--color-olive)]/50 resize-none shadow-sm text-[15px] sm:text-base transition-all"
             rows={1}
             style={{ minHeight: '60px', maxHeight: '120px' }}
@@ -182,6 +277,62 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {/* Hidden Instagram Export Card */}
+      {exportData && (
+        <div className="fixed top-[-9999px] left-[-9999px]">
+          <div 
+            id="instagram-export-card" 
+            className="w-[1080px] h-[1350px] bg-[#f5f2ed] flex flex-col relative overflow-hidden"
+          >
+            {/* Minimal Premium Border */}
+            <div className="absolute inset-8 border-[1px] border-[var(--color-olive)]/20 rounded-3xl pointer-events-none" />
+            
+            {/* Content Container */}
+            <div className="flex-1 flex flex-col justify-center px-24 py-24 relative z-10">
+              
+              {/* Question Section */}
+              <div className="mb-16">
+                <div className="flex items-center gap-4 mb-6">
+                  <div className="w-8 h-[1px] bg-[var(--color-olive)]/40" />
+                  <p className="text-xl text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium">The Seeker</p>
+                </div>
+                <p className="text-5xl font-sans text-[var(--color-ink)]/90 leading-tight font-light pl-12">
+                  "{exportData.question}"
+                </p>
+              </div>
+              
+              {/* Divider */}
+              <div className="w-full flex justify-center my-12">
+                <div className="w-12 h-12 rounded-full border border-[var(--color-olive)]/20 flex items-center justify-center">
+                  <Leaf size={20} className="text-[var(--color-olive)]/40" />
+                </div>
+              </div>
+              
+              {/* Answer Section */}
+              <div>
+                <div className="flex items-center gap-4 mb-8">
+                  <div className="w-8 h-[1px] bg-[var(--color-olive)]/40" />
+                  <p className="text-xl text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium">The Wisdom</p>
+                </div>
+                <div className="text-[3.25rem] font-serif text-[var(--color-ink)] leading-[1.4] markdown-export pl-12">
+                  <ReactMarkdown>{exportData.answer}</ReactMarkdown>
+                </div>
+              </div>
+            </div>
+            
+            {/* Footer */}
+            <div className="absolute bottom-16 left-0 w-full flex flex-col items-center justify-center gap-3">
+              <p className="font-serif text-3xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</p>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-[1px] bg-[var(--color-olive)]/30" />
+                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.3em] font-medium">Find Joy in Simplicity</p>
+                <div className="w-8 h-[1px] bg-[var(--color-olive)]/30" />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
