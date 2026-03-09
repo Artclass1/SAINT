@@ -155,29 +155,29 @@ export default function App() {
   };
 
   return (
-    <div className="flex flex-col h-screen bg-[var(--color-warm-bg)] font-sans">
+    <div className="flex flex-col h-screen matte-bg font-sans text-[var(--color-text)]">
       {/* Header */}
-      <header className="flex items-center justify-between p-4 sm:p-6 border-b border-[var(--color-olive)]/20 bg-white/50 backdrop-blur-sm sticky top-0 z-10">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-full bg-[var(--color-olive)] flex items-center justify-center text-white shadow-sm">
-            <Leaf size={20} className="opacity-90" />
+      <header className="flex items-center justify-between p-4 sm:p-6 border-b border-[var(--color-border)] bg-[#121212]/80 backdrop-blur-md sticky top-0 z-10">
+        <div className="flex items-center gap-4">
+          <div className="w-10 h-10 rounded-full border border-[var(--color-border)] flex items-center justify-center text-[var(--color-text)] shadow-sm">
+            <Leaf size={18} className="opacity-90" />
           </div>
           <div>
-            <h1 className="font-serif text-xl sm:text-2xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</h1>
-            <p className="text-[10px] sm:text-xs text-[var(--color-olive)]/70 uppercase tracking-widest font-medium">Find Joy in Simplicity</p>
+            <h1 className="font-serif text-xl sm:text-2xl font-light text-[var(--color-text)] tracking-wide">Tukaram's Wisdom</h1>
+            <p className="text-[10px] sm:text-xs text-[var(--color-text-muted)] uppercase tracking-widest font-medium">Find Joy in Simplicity</p>
           </div>
         </div>
         
         {/* Language Selector */}
-        <div className="flex items-center gap-2 bg-white/80 border border-[var(--color-olive)]/20 rounded-full px-3 py-1.5 shadow-sm">
-          <Globe size={14} className="text-[var(--color-olive)]/70" />
+        <div className="flex items-center gap-2 bg-[var(--color-surface)] border border-[var(--color-border)] rounded-full px-4 py-2 shadow-sm hover:bg-[var(--color-surface-hover)] transition-colors">
+          <Globe size={14} className="text-[var(--color-text-muted)]" />
           <select 
             value={language}
             onChange={(e) => setLanguage(e.target.value)}
-            className="bg-transparent text-xs sm:text-sm font-medium text-[var(--color-ink)]/80 focus:outline-none cursor-pointer appearance-none pr-2"
+            className="bg-transparent text-xs sm:text-sm font-medium text-[var(--color-text)] focus:outline-none cursor-pointer appearance-none pr-2"
           >
             {Object.keys(WELCOME_MESSAGES).map(lang => (
-              <option key={lang} value={lang}>{lang}</option>
+              <option key={lang} value={lang} className="bg-[var(--color-surface)] text-[var(--color-text)]">{lang}</option>
             ))}
           </select>
         </div>
@@ -194,17 +194,21 @@ export default function App() {
                 message.role === 'user' ? "justify-end" : "justify-start"
               )}
             >
-              <div className="flex flex-col items-start max-w-[85%] sm:max-w-[75%]">
+              <div className={cn(
+                "flex flex-col",
+                message.role === 'user' ? "items-end" : "items-start",
+                "max-w-[85%] sm:max-w-[75%]"
+              )}>
                 <div
                   className={cn(
-                    "rounded-3xl px-6 py-5 shadow-sm w-full",
+                    "rounded-3xl px-6 py-5 w-full font-light",
                     message.role === 'user'
-                      ? "bg-[var(--color-olive)] text-white rounded-br-sm"
-                      : "bg-white text-[var(--color-ink)] rounded-bl-sm border border-[var(--color-olive)]/10"
+                      ? "bg-[var(--color-surface)] text-[var(--color-text)] rounded-br-sm border border-[var(--color-border)] shadow-[inset_0_1px_0_rgba(255,248,231,0.03),0_4px_20px_rgba(0,0,0,0.2)]"
+                      : "bg-transparent text-[var(--color-text)] rounded-bl-sm border border-[var(--color-border)] shadow-[0_4px_20px_rgba(0,0,0,0.1)]"
                   )}
                 >
                   {message.role === 'model' ? (
-                    <div className="markdown-body text-[15px] sm:text-base">
+                    <div className="markdown-body text-[15px] sm:text-base leading-relaxed">
                       <ReactMarkdown>{message.text}</ReactMarkdown>
                     </div>
                   ) : (
@@ -221,7 +225,7 @@ export default function App() {
                       handleDownload(question, message.text);
                     }}
                     disabled={isExporting}
-                    className="mt-2 ml-2 flex items-center gap-1.5 text-xs text-[var(--color-olive)]/60 hover:text-[var(--color-olive)] transition-colors disabled:opacity-50"
+                    className="mt-3 ml-2 flex items-center gap-2 text-xs text-[var(--color-text-muted)] hover:text-[var(--color-text)] transition-colors disabled:opacity-50"
                     title="Download as Instagram Post"
                   >
                     {isExporting && exportData?.answer === message.text ? (
@@ -229,7 +233,7 @@ export default function App() {
                     ) : (
                       <Download size={14} />
                     )}
-                    <span className="uppercase tracking-wider font-medium">Save as Image</span>
+                    <span className="uppercase tracking-widest font-medium text-[10px]">Save as Image</span>
                   </button>
                 )}
               </div>
@@ -237,10 +241,10 @@ export default function App() {
           ))}
           {isLoading && (
             <div className="flex justify-start w-full">
-              <div className="bg-white border border-[var(--color-olive)]/10 rounded-3xl rounded-bl-sm px-6 py-5 shadow-sm flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-[var(--color-olive)]/40 animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 rounded-full bg-[var(--color-olive)]/40 animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 rounded-full bg-[var(--color-olive)]/40 animate-bounce" style={{ animationDelay: '300ms' }} />
+              <div className="bg-transparent border border-[var(--color-border)] rounded-3xl rounded-bl-sm px-6 py-5 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-muted)] animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-muted)] animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-1.5 h-1.5 rounded-full bg-[var(--color-text-muted)] animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           )}
@@ -249,7 +253,7 @@ export default function App() {
       </main>
 
       {/* Input Area */}
-      <footer className="p-4 sm:p-6 bg-gradient-to-t from-[var(--color-warm-bg)] via-[var(--color-warm-bg)] to-transparent">
+      <footer className="p-4 sm:p-6 bg-gradient-to-t from-[var(--color-bg)] via-[var(--color-bg)] to-transparent">
         <div className="max-w-3xl mx-auto relative">
           <textarea
             value={input}
@@ -261,20 +265,20 @@ export default function App() {
               }
             }}
             placeholder={language === 'Marathi' ? "तुमचे विचार सामायिक करा..." : language === 'Hindi' ? "अपने विचार साझा करें..." : "Share your thoughts or ask for guidance..."}
-            className="w-full bg-white border border-[var(--color-olive)]/20 rounded-3xl pl-6 pr-16 py-4 focus:outline-none focus:ring-2 focus:ring-[var(--color-olive)]/30 focus:border-[var(--color-olive)]/50 resize-none shadow-sm text-[15px] sm:text-base transition-all"
+            className="w-full bg-[var(--color-surface)] border border-[var(--color-border)] text-[var(--color-text)] rounded-3xl pl-6 pr-16 py-4 focus:outline-none focus:ring-1 focus:ring-[var(--color-text-muted)] focus:border-[var(--color-text-muted)] resize-none shadow-[inset_0_1px_0_rgba(255,248,231,0.03),0_4px_20px_rgba(0,0,0,0.2)] text-[15px] sm:text-base transition-all font-light placeholder:text-[var(--color-text-muted)]"
             rows={1}
             style={{ minHeight: '60px', maxHeight: '120px' }}
           />
           <button
             onClick={handleSend}
             disabled={!input.trim() || isLoading}
-            className="absolute right-2 bottom-2 w-11 h-11 rounded-full bg-[var(--color-olive)] text-white flex items-center justify-center hover:bg-[var(--color-olive-dark)] disabled:opacity-50 disabled:hover:bg-[var(--color-olive)] transition-colors"
+            className="absolute right-2 bottom-2 w-11 h-11 rounded-full bg-[var(--color-text)] text-[var(--color-bg)] flex items-center justify-center hover:bg-[#FFF8E7]/80 disabled:opacity-50 disabled:hover:bg-[var(--color-text)] transition-colors"
           >
             <Send size={18} className="ml-0.5" />
           </button>
         </div>
-        <div className="text-center mt-3">
-          <p className="text-[10px] sm:text-xs text-[var(--color-olive)]/60 uppercase tracking-wider font-medium">
+        <div className="text-center mt-4">
+          <p className="text-[10px] sm:text-xs text-[var(--color-text-muted)] uppercase tracking-[0.2em] font-medium">
             Wisdom from the Abhangas
           </p>
         </div>
@@ -285,38 +289,38 @@ export default function App() {
         <div className="fixed top-[-9999px] left-[-9999px]">
           <div 
             id="instagram-export-card" 
-            className="w-[1080px] h-[1350px] bg-[#f5f2ed] flex flex-col relative overflow-hidden"
+            className="w-[1080px] h-[1350px] matte-bg flex flex-col relative overflow-hidden"
           >
             {/* Minimal Premium Border */}
-            <div className="absolute inset-8 border-[1px] border-[var(--color-olive)]/20 rounded-3xl pointer-events-none" />
+            <div className="absolute inset-8 border-[1px] border-[var(--color-border)] rounded-3xl pointer-events-none" />
             
             {/* Content Container */}
             <div className="flex-1 flex flex-col px-24 pt-28 pb-12 relative z-10">
               
               {/* Question Section */}
               <div className="mb-12">
-                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium mb-5">The Seeker</p>
-                <p className="text-4xl font-sans text-[var(--color-ink)]/80 leading-snug font-light">
+                <p className="text-lg text-[var(--color-text-muted)] uppercase tracking-[0.3em] font-medium mb-5">The Seeker</p>
+                <p className="text-4xl font-sans text-[var(--color-text)] leading-snug font-light">
                   "{exportData.question}"
                 </p>
               </div>
               
               {/* Divider */}
-              <div className="w-16 h-[1px] bg-[var(--color-olive)]/30 my-8" />
+              <div className="w-16 h-[1px] bg-[var(--color-border)] my-8" />
               
               {/* Answer Section */}
               <div className="flex-1 flex flex-col justify-center">
-                <p className="text-lg text-[var(--color-olive)]/60 uppercase tracking-[0.2em] font-medium mb-6">The Wisdom</p>
-                <div className="text-[2.75rem] font-serif text-[var(--color-ink)] leading-tight markdown-export">
+                <p className="text-lg text-[var(--color-text-muted)] uppercase tracking-[0.3em] font-medium mb-6">The Wisdom</p>
+                <div className="text-[2.75rem] font-serif text-[var(--color-text)] leading-tight markdown-export font-light">
                   <ReactMarkdown>{exportData.answer}</ReactMarkdown>
                 </div>
               </div>
             </div>
             
             {/* Footer */}
-            <div className="h-32 flex flex-col items-center justify-center gap-2 relative z-10 border-t border-[var(--color-olive)]/10 mx-16 mb-8">
-              <p className="font-serif text-2xl font-medium text-[var(--color-olive-dark)] tracking-wide">Tukaram's Wisdom</p>
-              <p className="text-sm text-[var(--color-olive)]/60 uppercase tracking-[0.3em] font-medium">Find Joy in Simplicity</p>
+            <div className="h-32 flex flex-col items-center justify-center gap-3 relative z-10 border-t border-[var(--color-border)] mx-16 mb-8">
+              <p className="font-serif text-3xl font-light text-[var(--color-text)] tracking-widest">Tukaram's Wisdom</p>
+              <p className="text-sm text-[var(--color-text-muted)] uppercase tracking-[0.4em] font-medium">Find Joy in Simplicity</p>
             </div>
           </div>
         </div>
