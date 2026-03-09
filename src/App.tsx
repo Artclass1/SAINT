@@ -126,7 +126,9 @@ export default function App() {
     setIsExporting(true);
     setExportData({ question, answer });
     
-    // Wait for React to render the export card
+    // Wait for React to render the export card and fonts to load
+    await document.fonts.ready;
+    
     setTimeout(async () => {
       const node = document.getElementById('instagram-export-card');
       if (node) {
